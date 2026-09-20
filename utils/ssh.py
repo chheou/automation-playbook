@@ -65,9 +65,9 @@ class SSHClient:
         if not ssh_secure.is_ssh_unlocked():
             raise ValueError("SSH password is not set — call unlock_ssh_with_credentials() first.")
 
-        self.host          = host
-        self.username      = ssh_secure.SSH_USERNAME
-        self.timeout       = timeout
+        self.host = host
+        self.username = ssh_secure.SSH_USERNAME
+        self.timeout = timeout
         self.ssh: paramiko.SSHClient | None = None
         self._sem_acquired = False
 
@@ -91,14 +91,14 @@ class SSHClient:
             _pw = ssh_secure.get_ssh_password()
             try:
                 self.ssh.connect(
-                    hostname       = self.host,
-                    username       = self.username,
-                    password       = _pw,
-                    timeout        = self.timeout,
-                    auth_timeout   = self.timeout,
-                    banner_timeout = 30,
-                    allow_agent    = False,
-                    look_for_keys  = False,
+                    hostname=self.host,
+                    username=self.username,
+                    password=_pw,
+                    timeout=self.timeout,
+                    auth_timeout=self.timeout,
+                    banner_timeout=30,
+                    allow_agent=False,
+                    look_for_keys=False,
                 )
             except paramiko.SSHException as e:
                 err_str = str(e).lower()
@@ -113,7 +113,7 @@ class SSHClient:
             finally:
                 _pw = None
 
-            transport  = self.ssh.get_transport()
+            transport = self.ssh.get_transport()
             remote_key = transport.get_remote_server_key()
             if not verify_or_learn(self.host, remote_key):
                 self.ssh.close()
@@ -178,14 +178,14 @@ class SSHClient:
             _pw = pw
             try:
                 self.ssh.connect(
-                    hostname       = self.host,
-                    username       = self.username,
-                    password       = _pw,
-                    timeout        = self.timeout,
-                    auth_timeout   = self.timeout,
-                    banner_timeout = 30,
-                    allow_agent    = False,
-                    look_for_keys  = False,
+                    hostname=self.host,
+                    username=self.username,
+                    password=_pw,
+                    timeout=self.timeout,
+                    auth_timeout=self.timeout,
+                    banner_timeout=30,
+                    allow_agent=False,
+                    look_for_keys=False,
                 )
             finally:
                 _pw = None
@@ -232,10 +232,10 @@ class SSHClient:
     # -----------------------------------------------------------------------
     def run(
         self,
-        command:      str,
-        timeout:      int  = 3600,
-        log_func           = None,
-        silent:       bool = False,
+        command: str,
+        timeout: int = 3600,
+        log_func=None,
+        silent: bool = False,
         require_root: bool = True,
     ) -> str:
         """
@@ -273,12 +273,12 @@ class SSHClient:
         channel = stdout.channel
         channel.settimeout(timeout)
 
-        output_buf:    list[str] = []
-        error_buf:     list[str] = []
-        output_size:   int  = 0
-        error_size:    int  = 0
+        output_buf: list[str] = []
+        error_buf: list[str] = []
+        output_size: int = 0
+        error_size: int = 0
         output_capped: bool = False
-        error_capped:  bool = False
+        error_capped: bool = False
 
         def _read_stdout() -> None:
             nonlocal output_size, output_capped
@@ -356,7 +356,7 @@ class SSHClient:
         if output_capped or error_capped:
             cap_msg = (
                 f"[bold red]WARNING: Output from {self.host} exceeded "
-                f"{MAX_OUTPUT_BYTES // (1024*1024)} MB and was truncated. "
+                f"{MAX_OUTPUT_BYTES // (1024 * 1024)} MB and was truncated. "
                 f"The remote host may be misbehaving.[/bold red]"
             )
             if not silent:
@@ -365,7 +365,7 @@ class SSHClient:
                 log_func(f"[WARNING] Output truncated at {MAX_OUTPUT_BYTES} bytes")
 
         exit_code = channel.exit_status
-        duration  = time.time() - start_time
+        duration = time.time() - start_time
 
         complete_msg = (
             f"Completed in {duration:.1f}s on {self.host} "
@@ -403,7 +403,7 @@ class SSHClient:
             stdin_ch.write(payload)
             stdin_ch.channel.shutdown_write()
             # [FIX-B] Wipe sensitive data before blocking on exit status
-            payload      = None
+            payload = None
             new_password = None   # rebind local name to drop the reference
 
             exit_code = stdout_ch.channel.recv_exit_status()

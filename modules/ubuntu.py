@@ -36,8 +36,8 @@ from utils.ssh import SSHClient
 
 console = Console()
 
-REPO_IP         = "archive.ubuntu.com"
-REPO_PORT       = 80
+REPO_IP = "archive.ubuntu.com"
+REPO_PORT = 80
 MAX_REBOOT_WAIT = 300
 
 _LINUX_NAME_RE = re.compile(r'^[a-z_][a-z0-9_.\-]{0,31}$')
@@ -96,11 +96,11 @@ def _wait_for_reboot(summary: list) -> None:
     time.sleep(20)
 
     for entry in summary:
-        host    = entry[0]
+        host = entry[0]
         elapsed = 0
 
         while elapsed < MAX_REBOOT_WAIT:
-            remaining  = MAX_REBOOT_WAIT - elapsed
+            remaining = MAX_REBOOT_WAIT - elapsed
             mins, secs = divmod(remaining, 60)
             console.print(
                 f"\r   • Checking [cyan]{host}[/cyan] — "
@@ -174,7 +174,7 @@ def patch(username: str) -> None:
 
     def _run_patch_background():
         hosts_done = 0
-        summary    = []
+        summary = []
 
         try:
             with ThreadPoolExecutor(max_workers=50) as exe:
@@ -510,7 +510,7 @@ def password_update(username: str) -> None:
     if new_pass != confirm:
         console.print("[red]Passwords do not match. Cancelled.[/red]")
         new_pass = None
-        confirm  = None
+        confirm = None
         console.input("Press Enter to go back...")
         return
     confirm = None

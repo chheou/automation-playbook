@@ -50,12 +50,12 @@ from utils.host_input import get_hosts
 from utils.job_handler import log_user
 from utils.ssh import SSHClient
 
-console  = Console()
+console = Console()
 TASK_DIR = Path("tasks").resolve()
 
 # [FIX-A] Align with actual maximum possible duration:
 #   SSH connect timeout (15s) + command timeout (3600s) + 60s buffer = 3675s
-HOST_TIMEOUT_SECONDS  = 3675
+HOST_TIMEOUT_SECONDS = 3675
 INPUT_TIMEOUT_SECONDS = 120
 
 # [FIX-20] Hard cap on concurrent SSH workers per task.
@@ -65,10 +65,10 @@ MAX_WORKERS_LIMIT = 50
 _PLACEHOLDER_RE = re.compile(r"\{[a-zA-Z_][a-zA-Z0-9_]*\}")
 
 _VAR_ALLOWLIST: dict[str, re.Pattern] = {
-    "pkg_name":    re.compile(r"^[a-zA-Z0-9._\-+]{1,128}$"),
+    "pkg_name": re.compile(r"^[a-zA-Z0-9._\-+]{1,128}$"),
     "search_term": re.compile(r"^[a-zA-Z0-9._\-+\s]{1,128}$"),
     "target_user": re.compile(r"^[a-z_][a-z0-9_.\-]{0,31}$"),
-    "group_name":  re.compile(r"^[a-z_][a-z0-9_.\-]{0,31}$"),
+    "group_name": re.compile(r"^[a-z_][a-z0-9_.\-]{0,31}$"),
 }
 _GENERIC_SAFE = re.compile(r"^[a-zA-Z0-9._\-+]{1,128}$")
 
@@ -93,7 +93,7 @@ def _timed_input(prompt: str, timeout: int = INPUT_TIMEOUT_SECONDS) -> str | Non
     (done.is_set() is False after wait() returns), not on fast empty input.
     """
     result: list[str | None] = [None]
-    done   = threading.Event()
+    done = threading.Event()
 
     def _reader():
         try:
@@ -137,17 +137,17 @@ def _parse_scalar(value):
 
 
 def _parse_simple_yaml(text):
-    result          = {"tasks": []}
-    current_task    = None
+    result = {"tasks": []}
+    current_task = None
     current_command = None
-    section         = None
+    section = None
 
     for raw_line in text.splitlines():
         if not raw_line.strip() or raw_line.lstrip().startswith("#"):
             continue
 
         indent = len(raw_line) - len(raw_line.lstrip(" "))
-        line   = raw_line.strip()
+        line = raw_line.strip()
 
         if indent == 0 and line == "tasks:":
             section = "tasks"
@@ -220,7 +220,7 @@ def load_task_menu():
 def tasks_for(os_name: str, category: str) -> list[dict]:
     return [
         t for t in load_task_menu()
-        if t.get("os", "").lower()        == os_name.lower()
+        if t.get("os", "").lower() == os_name.lower()
         and t.get("category", "").lower() == category.lower()
     ]
 
@@ -254,9 +254,9 @@ def _summarize_output(output, parser):
 # Task runner
 # ---------------------------------------------------------------------------
 def run_yaml_task(
-    task:     dict,
+    task: dict,
     username: str,
-    os_name:  str = "Task",
+    os_name: str = "Task",
 ) -> None:
     task_name = task["name"]
     log_user(username, task.get("category", "task"), f"{task_name} started")
@@ -326,9 +326,9 @@ def run_yaml_task(
 
             results = []
             for command_info in commands:
-                label        = command_info.get("label", "Command")
-                command      = command_info.get("command")
-                parser       = command_info.get("parser", "first_line")
+                label = command_info.get("label", "Command")
+                command = command_info.get("command")
+                parser = command_info.get("parser", "first_line")
                 require_root = command_info.get("require_root", True)
                 if isinstance(require_root, str):
                     require_root = require_root.lower() != "false"
@@ -372,8 +372,8 @@ def run_yaml_task(
                 rows.append([host, "[red]Error[/red]", str(e)])
 
     table = Table(title=f"{task_name} - {os_name}")
-    table.add_column("IP",     style="bold")
-    table.add_column("SSH",    justify="center")
+    table.add_column("IP", style="bold")
+    table.add_column("SSH", justify="center")
     table.add_column("Result")
     for row in rows:
         table.add_row(*row)

@@ -54,14 +54,14 @@ console = Console()
 # ===========================================================================
 # CONSTANTS
 # ===========================================================================
-MAX_ATTEMPTS    = 5
+MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 300    # 5 minutes
 SESSION_TIMEOUT = 1800   # 30 minutes inactivity
 
 _LOCKOUT_FILE = Path("logs/.lockout_state.json")
 
-_failed_attempts: dict[str, int]   = {}
-_lockout_until:   dict[str, float] = {}
+_failed_attempts: dict[str, int] = {}
+_lockout_until: dict[str, float] = {}
 
 _vault_cache: dict | None = None
 
@@ -72,7 +72,7 @@ _user_hashes: dict[str, str] = {}
 # [FIX-D] SSH credentials stored separately so they survive repeated
 # sign-out / sign-in cycles. Populated once in get_user_list(); wiped only
 # at process exit via _wipe_vault_ssh_creds().
-_vault_ssh_username: str | None          = None
+_vault_ssh_username: str | None = None
 _vault_ssh_password_buf: bytearray | None = None
 
 # Precomputed dummy bcrypt hash — prevents CPU-DoS via unknown username attempts
@@ -82,16 +82,16 @@ _DUMMY_BCRYPT_HASH: bytes = bcrypt.hashpw(b"dummy", bcrypt.gensalt(rounds=12))
 # Navigation tables
 # ---------------------------------------------------------------------------
 _OS_LABELS = {
-    "redhat":  "Redhat",
-    "ubuntu":  "Ubuntu",
+    "redhat": "Redhat",
+    "ubuntu": "Ubuntu",
     "windows": "Windows",
 }
 _OS_ORDER = ["redhat", "ubuntu", "windows"]
 
 _CATEGORY_LABELS = {
     "patch_operations": "Patch Operations",
-    "app_maintenance":  "Application Maintenance",
-    "user_management":  "User Management",
+    "app_maintenance": "Application Maintenance",
+    "user_management": "User Management",
 }
 _CATEGORY_ORDER = ["patch_operations", "app_maintenance", "user_management"]
 
@@ -149,7 +149,7 @@ def _save_lockout_state() -> None:
     try:
         _LOCKOUT_FILE.parent.mkdir(parents=True, exist_ok=True)
         data = {
-            "failed":  _failed_attempts,
+            "failed": _failed_attempts,
             "lockout": _lockout_until,
         }
         with _umask_posix(0o177):
@@ -159,7 +159,7 @@ def _save_lockout_state() -> None:
 
 
 def _is_locked_out(username: str) -> tuple[bool, int]:
-    expiry    = _lockout_until.get(username, 0)
+    expiry = _lockout_until.get(username, 0)
     remaining = expiry - time.time()
     if remaining > 0:
         return True, int(remaining)
@@ -229,7 +229,7 @@ def _store_vault_ssh_creds(ssh_username: str, ssh_password: str) -> None:
     once from get_user_list() after the vault is decrypted.
     """
     global _vault_ssh_username, _vault_ssh_password_buf
-    _vault_ssh_username    = ssh_username
+    _vault_ssh_username = ssh_username
     _vault_ssh_password_buf = bytearray(ssh_password.encode("utf-8"))
 
 
@@ -271,14 +271,16 @@ def get_user_list() -> list[str]:
         sys.exit(1)
 
     try:
-        sys.stdout.write("\x1b[2J\x1b[3J\x1b[H"); sys.stdout.flush()
-        master_pass            = _secure_getpass("Enter master passphrase to unlock vault: ")
+        sys.stdout.write("\x1b[2J\x1b[3J\x1b[H")
+        sys.stdout.flush()
+        master_pass = _secure_getpass("Enter master passphrase to unlock vault: ")
         _vault_cache, hmac_key = load_vault(master_pass)
-        master_pass            = None
+        master_pass = None
         _record_success("__vault__")
 
         ssh_known_hosts.init_hmac_key(hmac_key)
-        hmac_key = b"\x00" * 32; hmac_key = None
+        hmac_key = b"\x00" * 32
+        hmac_key = None
 
         _user_hashes = dict(_vault_cache.get("users", {}))
         _vault_cache["users"] = {}
@@ -335,7 +337,8 @@ def user_login(user_list: list[str]) -> str:
                 console.print(f"[bold red]Login aborted — SSH unlock failed: {e}[/bold red]")
                 console.print("[yellow]Please try again or contact your administrator.[/yellow]\n")
                 continue   # loop back to account selection
-            sys.stdout.write("\x1b[2J\x1b[3J\x1b[H"); sys.stdout.flush()
+            sys.stdout.write("\x1b[2J\x1b[3J\x1b[H")
+            sys.stdout.flush()
             return selected
 
         console.print("\n[bold red]Wrong password.[/bold red]")
@@ -404,14 +407,14 @@ def _run_task(task: dict, username: str, os_name: str) -> None:
     )
 
     if task.get("type") == "python":
-        module_name   = task.get("module")
+        module_name = task.get("module")
         function_name = task.get("function")
         if not module_name or not function_name:
             console.print(f"[red]Invalid task definition: {task.get('name', 'Unknown')}[/red]")
             console.input("\nPress Enter to continue...")
             return
         try:
-            module  = importlib.import_module(module_name)
+            module = importlib.import_module(module_name)
             handler = getattr(module, function_name)
             handler(username)
         except KeyboardInterrupt:
@@ -431,7 +434,7 @@ def _task_list_menu(username: str, os_name: str, category: str) -> bool:
     task_list = tasks_for(os_name, category)
 
     if not task_list:
-        os_label  = _OS_LABELS.get(os_name, os_name)
+        os_label = _OS_LABELS.get(os_name, os_name)
         cat_label = _CATEGORY_LABELS.get(category, category)
         console.print(
             f"\n[yellow]No tasks defined for {os_label} → {cat_label}.[/yellow]\n"
@@ -439,9 +442,9 @@ def _task_list_menu(username: str, os_name: str, category: str) -> bool:
         console.input("Press Enter to go back...")
         return False
 
-    os_label  = _OS_LABELS.get(os_name, os_name).upper()
+    os_label = _OS_LABELS.get(os_name, os_name).upper()
     cat_label = _CATEGORY_LABELS.get(category, category).upper()
-    title     = f"{os_label} — {cat_label}"
+    title = f"{os_label} — {cat_label}"
     task_names = [t["name"] for t in task_list] + ["Back"]
 
     while True:
@@ -456,7 +459,7 @@ def _task_list_menu(username: str, os_name: str, category: str) -> bool:
 
 
 def _category_menu(username: str, os_name: str) -> bool:
-    os_label  = _OS_LABELS.get(os_name, os_name)
+    os_label = _OS_LABELS.get(os_name, os_name)
     cat_items = [_CATEGORY_LABELS[k] for k in _CATEGORY_ORDER] + ["Back"]
 
     while True:

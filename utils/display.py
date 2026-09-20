@@ -7,6 +7,7 @@ from rich import box
 
 console = Console()
 
+
 def show_precheck_table(data, os_name):
     console.rule(f"[bold magenta]Pre-Check Results - {os_name}[/bold magenta]")
     table = Table(box=box.SIMPLE_HEAVY)
@@ -22,6 +23,7 @@ def show_precheck_table(data, os_name):
             "[green]Yes[/green]" if row[3] == "Yes" else "[red]No[/red]"
         )
     console.print(table)
+
 
 def show_final_patch_summary(summary_data):
     console.rule("[bold green]FINAL PATCH SUMMARY[/bold green]")
@@ -45,6 +47,7 @@ def show_final_patch_summary(summary_data):
         )
     console.print(table)
 
+
 def show_errors(errors):
     if not errors:
         return
@@ -53,6 +56,7 @@ def show_errors(errors):
         console.print(f"[bold red]→ {ip}[/bold red]")
         for line in str(err).splitlines():
             console.print(f"  {line}")
+
 
 def show_pre_reboot_table(hosts):
     if not hosts:
@@ -64,6 +68,7 @@ def show_pre_reboot_table(hosts):
     for h in hosts:
         table.add_row(h)
     console.print(table)
+
 
 def show_post_reboot_table(data):
     console.rule("[bold green]Post-Reboot Status[/bold green]")
@@ -82,6 +87,7 @@ def show_post_reboot_table(data):
         )
     console.print(table)
 
+
 def show_check_update_table(data, os_name):
     console.rule(f"[bold cyan]Available Updates - {os_name}[/bold cyan]")
     table = Table(box=box.SIMPLE_HEAVY)
@@ -94,6 +100,8 @@ def show_check_update_table(data, os_name):
     console.print(table)
 
 # FIXED — NOW CORRECTLY SHOWS "Yes" WHEN REBOOT REQUIRED
+
+
 def show_simple_reboot_table(data, os_name):
     console.rule(f"[bold magenta]Reboot Status - {os_name}[/bold magenta]")
     table = Table(box=box.SIMPLE_HEAVY)

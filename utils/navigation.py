@@ -50,7 +50,7 @@ import os
 import sys
 
 HIGHLIGHT = "\033[93;40m"
-RESET     = "\033[0m"
+RESET = "\033[0m"
 
 
 # ---------------------------------------------------------------------------
@@ -158,8 +158,8 @@ def numbered_select(title: str, items: list, esc_returns_none: bool = True):
     if not items:
         return None
 
-    selected   = 0
-    digit_buf  = ""   # [Fix B] accumulates a multi-digit number shortcut
+    selected = 0
+    digit_buf = ""   # [Fix B] accumulates a multi-digit number shortcut
 
     def draw():
         clear()
@@ -198,7 +198,7 @@ def numbered_select(title: str, items: list, esc_returns_none: bool = True):
                 if next_byte == b'[':
                     # Standard ANSI arrow: read the final letter
                     letter = _read_char_raw(sys.stdin.fileno())
-                    arrow  = b'[' + letter
+                    arrow = b'[' + letter
                     # [Fix B] An arrow key discards any partial digit buffer
                     digit_buf = ""
                     if arrow == b'[A':
@@ -240,7 +240,7 @@ def numbered_select(title: str, items: list, esc_returns_none: bool = True):
                     digit_buf = ""
                 elif len(digit_buf) == 1 and 1 <= buffered <= min(9, len(items)):
                     # Single-digit immediate jump (original behaviour preserved)
-                    selected  = buffered - 1
+                    selected = buffered - 1
                     digit_buf = ""
                 # else: multi-digit in progress — wait for Enter
 

@@ -41,14 +41,18 @@ def _not_implemented(task_name: str) -> None:
 def check_updates(username: str) -> None:
     _not_implemented("Check Updates")
 
+
 def patch(username: str) -> None:
     _not_implemented("Patch")
+
 
 def check_reboot(username: str) -> None:
     _not_implemented("Check Pending Reboot")
 
+
 def reboot_required(username: str) -> None:
     _not_implemented("Reboot As Required")
+
 
 def force_reboot(username: str) -> None:
     _not_implemented("Force Reboot")
@@ -61,11 +65,14 @@ def force_reboot(username: str) -> None:
 def app_install(username: str) -> None:
     _not_implemented("Install Application")
 
+
 def app_remove(username: str) -> None:
     _not_implemented("Remove Application")
 
+
 def app_update(username: str) -> None:
     _not_implemented("Update Application")
+
 
 def app_search(username: str) -> None:
     _not_implemented("Search Application")
@@ -78,17 +85,22 @@ def app_search(username: str) -> None:
 def user_add(username: str) -> None:
     _not_implemented("Add User")
 
+
 def user_delete(username: str) -> None:
     _not_implemented("Delete User")
+
 
 def user_search(username: str) -> None:
     _not_implemented("Search User")
 
+
 def password_update(username: str) -> None:
     _not_implemented("Update Password")
 
+
 def group_add(username: str) -> None:
     _not_implemented("Add Group")
+
 
 def group_delete(username: str) -> None:
     _not_implemented("Delete Group")

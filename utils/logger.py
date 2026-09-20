@@ -67,9 +67,9 @@ def _reset_logger(logger: logging.Logger, handler: logging.FileHandler) -> None:
 
 
 def init_patch_log():
-    ts      = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     logfile = f"logs/patch_{ts}.log"
-    logger  = logging.getLogger(f"patch_{ts}")
+    logger = logging.getLogger(f"patch_{ts}")
     logger.setLevel(logging.INFO)
 
     handler = _make_file_handler(logfile)   # [FIX-10]
@@ -81,9 +81,9 @@ def init_patch_log():
 
 
 def init_reboot_log():
-    ts      = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     logfile = f"logs/reboot_{ts}.log"
-    logger  = logging.getLogger(f"reboot_{ts}")
+    logger = logging.getLogger(f"reboot_{ts}")
     logger.setLevel(logging.INFO)
 
     handler = _make_file_handler(logfile)   # [FIX-10]

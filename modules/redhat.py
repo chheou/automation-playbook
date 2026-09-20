@@ -49,8 +49,8 @@ from utils.ssh import SSHClient
 
 console = Console()
 
-REPO_IP         = "172.17.18.40"
-REPO_PORT       = 443
+REPO_IP = "172.17.18.40"
+REPO_PORT = 443
 MAX_REBOOT_WAIT = 300  # seconds
 
 _LINUX_NAME_RE = re.compile(r'^[a-z_][a-z0-9_.\-]{0,31}$')
@@ -109,11 +109,11 @@ def _wait_for_reboot(summary: list) -> None:
     time.sleep(20)
 
     for entry in summary:
-        host    = entry[0]
+        host = entry[0]
         elapsed = 0
 
         while elapsed < MAX_REBOOT_WAIT:
-            remaining  = MAX_REBOOT_WAIT - elapsed
+            remaining = MAX_REBOOT_WAIT - elapsed
             mins, secs = divmod(remaining, 60)
             console.print(
                 f"\r   • Checking [cyan]{host}[/cyan] — "
@@ -189,7 +189,7 @@ def patch(username: str) -> None:
 
     def _run_patch_background():
         hosts_done = 0
-        summary    = []
+        summary = []
 
         try:
             def _precheck_silent(host: str) -> list:
@@ -227,7 +227,7 @@ def patch(username: str) -> None:
                         return
 
                     log_fn(f"[{host}] Connected — starting patch")
-                    client.run("yum clean all",      log_func=log_fn, silent=True)
+                    client.run("yum clean all", log_func=log_fn, silent=True)
                     raw = client.run("yum check-update", log_func=log_fn, silent=True)
 
                     pkg_lines = [
@@ -299,7 +299,7 @@ def check_update(username: str) -> None:
                 results.append([host, "[red]No[/red]", "[red]N/A[/red]", "[red]Failed[/red]"])
                 continue
 
-            raw   = client.run("yum check-update", require_root=False)
+            raw = client.run("yum check-update", require_root=False)
             count = len([
                 l for l in raw.splitlines()
                 if l.strip() and "." in l.split()[0]
@@ -543,7 +543,7 @@ def password_update(username: str) -> None:
     if new_pass != confirm:
         console.print("[red]Passwords do not match. Cancelled.[/red]")
         new_pass = None
-        confirm  = None
+        confirm = None
         console.input("Press Enter to go back...")
         return
     confirm = None

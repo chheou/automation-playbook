@@ -39,8 +39,8 @@ console = Console()
 # External callers (ssh.py) must use get_ssh_password() at connection time
 # and must NOT cache the returned str value beyond the connect() call.
 # ---------------------------------------------------------------------------
-SSH_USERNAME: str | None             = None
-_SSH_PASSWORD_BUF: bytearray | None  = None
+SSH_USERNAME: str | None = None
+_SSH_PASSWORD_BUF: bytearray | None = None
 
 
 def is_ssh_unlocked() -> bool:
@@ -91,7 +91,7 @@ def unlock_ssh_with_credentials(ssh_username: str, ssh_password: str) -> None:
         raise ValueError("SSH credentials are empty — check vault contents.")
 
     try:
-        SSH_USERNAME      = ssh_username
+        SSH_USERNAME = ssh_username
         _SSH_PASSWORD_BUF = bytearray(ssh_password.encode("utf-8"))
         console.print("[bold green]  ✓ SSH credentials unlocked and ready.[/bold green]")
     except Exception as e:
