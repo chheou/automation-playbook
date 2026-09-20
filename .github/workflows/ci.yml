@@ -38,6 +38,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: bandit-results.sarif
+          category: bandit
 
       - name: Dependency scan (pip-audit)
         run: pip-audit -r requirements.txt
@@ -75,6 +76,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: trivy-results.sarif
+          category: trivy
 
   push:
     needs: build-and-scan-image
