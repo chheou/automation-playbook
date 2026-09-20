@@ -7,5 +7,4 @@ pycparser==3.0
 PyNaCl==1.6.2
 rich==15.0.0
 openpyxl==3.1.5
-setuptools==84.0.0
-msgpack==1.2.1
+setuptools==83.0.0
