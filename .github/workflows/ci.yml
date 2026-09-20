@@ -63,6 +63,7 @@ jobs:
           version: v0.74.0
 
       - name: Trivy results (readable)
+        if: always()
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: automation-playbook:ci
