@@ -39,9 +39,9 @@ console = Console()
 # TAIL LOG
 # ---------------------------------------------------------------------------
 def _tail_log(
-    job:              dict,
-    viewer_username:  str,
-    on_activity:      Callable[[], None] | None = None,
+    job: dict,
+    viewer_username: str,
+    on_activity: Callable[[], None] | None = None,
 ) -> None:
     """
     Stream log file output to the console.
@@ -51,12 +51,12 @@ def _tail_log(
     inactivity clock in Main.py. [SEC-1 / MED-004]
     """
     log_path = Path(job["log_file"])
-    owner    = job["username"]
-    task     = job["task"]
-    job_id   = job["job_id"]
+    owner = job["username"]
+    task = job["task"]
+    job_id = job["job_id"]
 
     is_owner = (viewer_username == owner)
-    label    = (
+    label = (
         "[bold green]YOUR JOB[/bold green]"
         if is_owner
         else f"[dim]{owner}'s job[/dim]"
@@ -140,7 +140,7 @@ def _tail_log(
 # ---------------------------------------------------------------------------
 def show_running_tasks(
     current_username: str = "",
-    on_activity:      Callable[[], None] | None = None,
+    on_activity: Callable[[], None] | None = None,
 ) -> None:
     """
     Interactive monitor. Shows all users, their running/recent jobs.
@@ -150,7 +150,8 @@ def show_running_tasks(
     refresh the session inactivity clock. [SEC-1 / MED-004]
     """
     while True:
-        sys.stdout.write("\x1b[2J\x1b[3J\x1b[H"); sys.stdout.flush()
+        sys.stdout.write("\x1b[2J\x1b[3J\x1b[H")
+        sys.stdout.flush()
         console.rule("[bold cyan]MONITOR — ACTIVE USERS & JOBS[/bold cyan]")
 
         if on_activity:
@@ -168,9 +169,9 @@ def show_running_tasks(
 
             if active_users:
                 user_table = Table(title="Active Users", box=box.SIMPLE_HEAVY)
-                user_table.add_column("User",         style="bold cyan")
+                user_table.add_column("User", style="bold cyan")
                 user_table.add_column("Running Jobs", justify="center")
-                user_table.add_column("Note",         justify="center")
+                user_table.add_column("Note", justify="center")
                 for uname, ujobs in active_users.items():
                     note = (
                         "[bold green]● YOU[/bold green]"
@@ -185,23 +186,23 @@ def show_running_tasks(
             job_table = Table(
                 title="All Jobs (select to view log)", box=box.SIMPLE_HEAVY
             )
-            job_table.add_column("#",        justify="right", style="dim")
-            job_table.add_column("User",     style="bold")
+            job_table.add_column("#", justify="right", style="dim")
+            job_table.add_column("User", style="bold")
             job_table.add_column("Task")
             job_table.add_column("Progress", justify="center")
-            job_table.add_column("Status",   justify="center")
-            job_table.add_column("Started",  style="dim")
+            job_table.add_column("Status", justify="center")
+            job_table.add_column("Started", style="dim")
 
             selectable = []
             idx = 1
             for j in jobs[:20]:
-                total    = j["hosts_total"]
-                done     = j["hosts_done"]
+                total = j["hosts_total"]
+                done = j["hosts_done"]
                 progress = f"{done}/{total}" if total > 0 else "—"
                 status_markup = {
                     "running": "[bold yellow]● RUNNING[/bold yellow]",
-                    "done":    "[green]✓ DONE[/green]",
-                    "failed":  "[red]✗ FAILED[/red]",
+                    "done": "[green]✓ DONE[/green]",
+                    "failed": "[red]✗ FAILED[/red]",
                 }.get(j["status"], j["status"])
 
                 owner_tag = (
@@ -230,7 +231,7 @@ def show_running_tasks(
             return
 
         menu_items = [
-            f"{i+1}. [{j['username']}] {j['task']} — {j['status'].upper()}"
+            f"{i + 1}. [{j['username']}] {j['task']} — {j['status'].upper()}"
             for i, j in enumerate(selectable)
         ]
         menu_items.append("Refresh")

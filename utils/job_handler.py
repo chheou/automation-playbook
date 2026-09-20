@@ -53,6 +53,8 @@ _audit_log_lock = threading.Lock()
 # ---------------------------------------------------------------------------
 # [SEC-6] Umask context
 # ---------------------------------------------------------------------------
+
+
 @contextmanager
 def _umask_posix(mask: int):
     """Temporarily set umask on POSIX; no-op on Windows."""
@@ -96,7 +98,7 @@ if not _AUDIT_LOG.exists():
 # ---------------------------------------------------------------------------
 # [SEC-5] Log size constants
 # ---------------------------------------------------------------------------
-LOG_MAX_BYTES        = 10 * 1024 * 1024   # 10 MB per session/audit log
+LOG_MAX_BYTES = 10 * 1024 * 1024   # 10 MB per session/audit log
 MAX_ACTION_LOG_BYTES = 100 * 1024 * 1024  # 100 MB per action subdirectory
 
 
@@ -150,22 +152,22 @@ _registry_lock = threading.Lock()
 
 
 def register_job(
-    job_id:      str,
-    username:    str,
-    task:        str,
-    log_file:    str,
+    job_id: str,
+    username: str,
+    task: str,
+    log_file: str,
     hosts_total: int = 0,
 ) -> None:
     with _registry_lock:
         JOB_REGISTRY[job_id] = {
-            "job_id":      job_id,
-            "username":    username,
-            "task":        task,
-            "status":      "running",
-            "started":     datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "log_file":    log_file,
+            "job_id": job_id,
+            "username": username,
+            "task": task,
+            "status": "running",
+            "started": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "log_file": log_file,
             "hosts_total": hosts_total,
-            "hosts_done":  0,
+            "hosts_done": 0,
         }
 
 
@@ -195,7 +197,7 @@ def user_has_running_job(username: str, task_name: str) -> bool:
     with _registry_lock:
         return any(
             j["username"] == username
-            and j["task"]   == task_name
+            and j["task"] == task_name
             and j["status"] == "running"
             for j in JOB_REGISTRY.values()
         )
@@ -228,7 +230,7 @@ def get_user_dirs(username: str) -> Path:
                 session_log.touch()
         if os.name == "posix":
             try:
-                os.chmod(user_dir,    stat.S_IRWXU)                    # 700
+                os.chmod(user_dir, stat.S_IRWXU)                    # 700
                 os.chmod(session_log, stat.S_IRUSR | stat.S_IWUSR)     # 600
             except OSError:
                 pass
@@ -264,10 +266,10 @@ def log_user(username: str, category: str, message: str) -> None:
     """
     try:
         user_dir = get_user_dirs(username)
-        ts   = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         line = f"[{ts}] {message}\n"
 
-        session_log  = user_dir / "session.log"
+        session_log = user_dir / "session.log"
         session_lock = _get_session_lock(username)
 
         with session_lock:
@@ -300,7 +302,7 @@ def get_detailed_logger(username: str, action_type: str, action_name: str = ""):
             else f"{action_type}_{ts}.log"
         )
         action_dir = user_dir / action_type
-        log_file   = action_dir / log_filename
+        log_file = action_dir / log_filename
 
         _prune_old_action_logs(action_dir)
 

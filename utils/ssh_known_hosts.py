@@ -39,10 +39,10 @@ from rich.console import Console
 console = Console()
 
 _STORE_FILE = Path("logs/.host_keys.json")
-_SIG_FILE   = Path("logs/.host_keys.json.sig")
+_SIG_FILE = Path("logs/.host_keys.json.sig")
 
-_store:      dict[str, str] = {}
-_loaded:     bool           = False
+_store: dict[str, str] = {}
+_loaded: bool = False
 _store_lock: threading.Lock = threading.Lock()   # [FIX-A] protects _store and _loaded
 
 # ---------------------------------------------------------------------------
@@ -196,7 +196,7 @@ def _load() -> None:
         _STORE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
         if not _STORE_FILE.exists():
-            _store  = {}
+            _store = {}
             _loaded = True
             return
 
@@ -204,7 +204,7 @@ def _load() -> None:
             raw_bytes = _STORE_FILE.read_bytes()
         except OSError as e:
             console.print(f"[yellow]Warning: could not read host key store: {e}[/yellow]")
-            _store  = {}
+            _store = {}
             _loaded = True
             return
 
@@ -218,7 +218,7 @@ def _load() -> None:
 
         _verify_hmac(raw_bytes, existing_entries=bool(parsed))
 
-        _store  = parsed
+        _store = parsed
         _loaded = True
 
 
@@ -244,7 +244,7 @@ def _save() -> None:
     try:
         _STORE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-        content   = json.dumps(_store, indent=2, sort_keys=True).encode("utf-8")
+        content = json.dumps(_store, indent=2, sort_keys=True).encode("utf-8")
         signature = _compute_hmac(content)
 
         # Step 2/3 — write store atomically via temp + rename  [FIX-C]
@@ -293,7 +293,7 @@ def verify_or_learn(host: str, key) -> bool:
     """
     _load()   # acquires and releases lock internally
 
-    host_id     = _host_id(host)
+    host_id = _host_id(host)
     fingerprint = key.get_fingerprint().hex()
     # [FIX-B] Masked host for display — never show full IP in terminal output
     host_display = host[:3] + "…"
