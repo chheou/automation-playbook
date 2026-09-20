@@ -61,6 +61,7 @@ jobs:
           severity: CRITICAL,HIGH
           exit-code: "1"
           version: v0.74.0
+          trivyignores: .trivyignore
 
       - name: Trivy results (readable)
         if: always()
@@ -70,6 +71,7 @@ jobs:
           format: table
           severity: CRITICAL,HIGH
           version: v0.74.0
+          trivyignores: .trivyignore
 
 
       - name: Upload Trivy results
