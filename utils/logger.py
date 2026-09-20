@@ -18,7 +18,6 @@
 
 import logging
 import os
-import stat
 from datetime import datetime
 
 os.makedirs("logs", exist_ok=True)
