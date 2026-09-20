@@ -200,8 +200,8 @@ def patch(username: str) -> None:
                         silent=True,
                     )
                     pkg_lines = [
-                        l for l in out.splitlines()
-                        if "/" in l and not l.startswith("Listing")
+                        line for line in out.splitlines()
+                        if "/" in line and not line.startswith("Listing")
                     ]
                     count = len(pkg_lines)
                     log_fn(f"[{host}] {count} package(s) available")

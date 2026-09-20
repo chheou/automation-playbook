@@ -179,9 +179,9 @@ def numbered_select(title: str, items: list, esc_returns_none: bool = True):
             hint += f"  •  typing: {digit_buf}_"
         print(f"\n\033[90m{hint}\033[0m")
         if esc_returns_none:
-            print(f"\033[1;33mPress Esc to go back\033[0m")
+            print("\033[1;33mPress Esc to go back\033[0m")
         else:
-            print(f"\033[1;33mPress Esc to cancel\033[0m")
+            print("\033[1;33mPress Esc to cancel\033[0m")
 
     draw()
 

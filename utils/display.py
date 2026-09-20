@@ -78,7 +78,7 @@ def show_post_reboot_table(data):
     table.add_column("Reboot Still Needed")
     table.add_column("Uptime", style="dim")
     for row in data:
-        clean_uptime = " ".join([l for l in row[3].splitlines() if "cannot find name for group ID" not in l])
+        clean_uptime = " ".join([line for line in row[3].splitlines() if "cannot find name for group ID" not in line])
         table.add_row(
             row[0],
             "[green]Yes[/green]" if row[1] == "Yes" else "[red]No[/red]",
