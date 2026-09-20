@@ -26,8 +26,6 @@ from rich.table import Table
 
 from utils.display import (
     show_check_update_table,
-    show_final_patch_summary,
-    show_precheck_table,
     show_simple_reboot_table,
 )
 from utils.host_input import get_hosts

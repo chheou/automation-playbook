@@ -46,7 +46,6 @@
 #           If the next byte is anything else (including timeout) we treat
 #           the original ESC as a standalone ESC keypress.
 
-import os
 import sys
 
 HIGHLIGHT = "\033[93;40m"
