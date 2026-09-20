@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
 jobs:
   lint-and-scan:
     runs-on: ubuntu-latest
