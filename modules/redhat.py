@@ -230,7 +230,7 @@ def patch(username: str) -> None:
 
                     pkg_lines = [
                         line for line in raw.splitlines()
-                        if line.strip() and "." in l.split()[0]
+                        if line.strip() and "." in line.split()[0]
                     ]
                     pkg_count = len(pkg_lines)
                     log_fn(f"[{host}] {pkg_count} package(s) available")

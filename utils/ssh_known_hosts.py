@@ -350,7 +350,7 @@ def forget_host(host: str) -> bool:
         if host_id in _store:
             del _store[host_id]
             _save()
-            console.print(f"[yellow]Host key entry removed.[/yellow]")
+            console.print("[yellow]Host key entry removed.[/yellow]")
             return True
-    console.print(f"[dim]No stored key found for requested host.[/dim]")
+    console.print("[dim]No stored key found for requested host.[/dim]")
     return False

@@ -278,8 +278,8 @@ def check_update(username: str) -> None:
             client.run("apt-get update -qq")
             out = client.run("apt list --upgradable 2>/dev/null", require_root=False)
             count = len([
-                l for l in out.splitlines()
-                if "/" in l and not l.startswith("Listing")
+                line for line in out.splitlines()
+                if "/" in line and not line.startswith("Listing")
             ])
             status = (
                 f"[bold yellow]{count} package{'s' if count != 1 else ''}[/bold yellow]"
