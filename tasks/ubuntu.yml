@@ -1,0 +1,166 @@
+# tasks/ubuntu.yml — Ubuntu / Debian task definitions
+#
+# Changes from original:
+#   [Fix 1] Added: Check Available Updates task (apt list --upgradable)
+#   [Fix 2] Added: Patch / Full Upgrade task (apt-get upgrade -y)
+#   [Fix 3] Added: Check Reboot Required task (/var/run/reboot-required)
+#   [Fix 4] Added: Reboot & verify task (reboot + wait + uptime)
+#   [Fix 5] Added: Install Zabbix Agent Ubuntu task (apt-based)
+#   [Fix 6] max_workers tuned per task risk level
+
+# ── CONFIG ──────────────────────────────────────────────────────────────────
+# Zabbix server IP — update here if the monitoring server changes
+# ZABBIX_SERVER: 172.17.1.155
+# ────────────────────────────────────────────────────────────────────────────
+
+tasks:
+
+  # -------------------------------------------------------------------------
+  # INFO
+  # -------------------------------------------------------------------------
+  - name: Check OS
+    type: ssh
+    category: info
+    max_workers: 20
+    commands:
+      - label: OS Version
+        command: cat /etc/os-release 2>/dev/null || lsb_release -a 2>/dev/null || uname -a
+        parser: os_release
+
+  # -------------------------------------------------------------------------
+  # CHECK AVAILABLE UPDATES  [Fix 1]
+  # -------------------------------------------------------------------------
+  - name: Check Updates Ubuntu
+    type: ssh
+    category: info
+    max_workers: 20
+    commands:
+      - label: Refresh package index
+        command: apt-get update -qq 2>/dev/null
+        parser: first_line
+      - label: List upgradable packages
+        command: apt list --upgradable 2>/dev/null | grep -v "^Listing"
+        parser: first_line
+      - label: Count available updates
+        command: apt list --upgradable 2>/dev/null | grep -c "/" || echo "0"
+        parser: first_line
+
+  # -------------------------------------------------------------------------
+  # PATCH — Full system upgrade  [Fix 2]
+  # -------------------------------------------------------------------------
+  - name: Patch Ubuntu
+    type: ssh
+    category: patch
+    max_workers: 5
+    commands:
+      - label: Pre-patch snapshot (installed packages count)
+        command: dpkg -l | grep "^ii" | wc -l
+        parser: first_line
+      - label: Refresh package index
+        command: apt-get update -qq
+        parser: first_line
+      - label: Apply all updates (non-interactive)
+        command: DEBIAN_FRONTEND=noninteractive apt-get upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+        parser: first_line
+      - label: Remove unused packages
+        command: DEBIAN_FRONTEND=noninteractive apt-get autoremove -y
+        parser: first_line
+      - label: Post-patch snapshot (installed packages count)
+        command: dpkg -l | grep "^ii" | wc -l
+        parser: first_line
+      - label: Check reboot required after patch
+        command: >
+          if [ -f /var/run/reboot-required ];
+          then echo "REBOOT_REQUIRED";
+          else echo "REBOOT_NOT_REQUIRED";
+          fi
+        parser: first_line
+
+  # -------------------------------------------------------------------------
+  # CHECK REBOOT REQUIRED  [Fix 3]
+  # -------------------------------------------------------------------------
+  - name: Check Reboot Status Ubuntu
+    type: ssh
+    category: reboot
+    max_workers: 20
+    commands:
+      - label: Reboot required check
+        command: >
+          if [ -f /var/run/reboot-required ];
+          then echo "REBOOT_REQUIRED";
+          else echo "REBOOT_NOT_REQUIRED";
+          fi
+        parser: first_line
+      - label: Packages requiring reboot
+        command: cat /var/run/reboot-required.pkgs 2>/dev/null || echo "none"
+        parser: first_line
+      - label: Current kernel
+        command: uname -r
+        parser: first_line
+      - label: Latest installed kernel
+        command: dpkg -l | grep "^ii  linux-image" | awk '{print $3}' | sort -V | tail -1
+        parser: first_line
+      - label: Current uptime
+        command: uptime -p 2>/dev/null || uptime
+        parser: first_line
+
+  # -------------------------------------------------------------------------
+  # REBOOT & VERIFY  [Fix 4]
+  # -------------------------------------------------------------------------
+  - name: Reboot Servers Ubuntu
+    type: ssh
+    category: reboot
+    max_workers: 5
+    commands:
+      - label: Record uptime before reboot
+        command: uptime
+        parser: first_line
+      - label: Initiate reboot
+        command: shutdown -r +0 "Scheduled reboot by patcher" &
+        parser: first_line
+
+  # Post-reboot verify runs after reconnect — handled by Python module
+  # modules.ubuntu.reboot_servers() waits for SSH recovery then calls:
+  #   - uname -r                          → confirm new kernel loaded
+  #   - uptime                            → confirm fresh boot
+  #   - [ -f /var/run/reboot-required ]   → confirm reboot no longer required
+
+  # -------------------------------------------------------------------------
+  # INSTALL — Zabbix Agent  [Fix 5]
+  # -------------------------------------------------------------------------
+  - name: Install Zabbix Agent Ubuntu
+    type: ssh
+    category: install
+    max_workers: 10
+    commands:
+      - label: Detect Ubuntu codename
+        command: lsb_release -cs 2>/dev/null || . /etc/os-release && echo $VERSION_CODENAME
+        parser: first_line
+      - label: Install Zabbix repository
+        command: >
+          ubuntu_codename=$(lsb_release -cs 2>/dev/null || . /etc/os-release && echo $VERSION_CODENAME);
+          if ! dpkg -l | grep -q zabbix-release; then
+            wget -q https://repo.zabbix.com/zabbix/6.4/ubuntu/pool/main/z/zabbix-release/zabbix-release_6.4-1+ubuntu${ubuntu_codename}_all.deb -O /tmp/zabbix-release.deb &&
+            dpkg -i /tmp/zabbix-release.deb &&
+            rm -f /tmp/zabbix-release.deb;
+          else
+            echo "Zabbix repo already installed";
+          fi
+        parser: first_line
+      - label: Refresh package index
+        command: apt-get update -qq
+        parser: first_line
+      - label: Install package
+        command: DEBIAN_FRONTEND=noninteractive apt-get install -y zabbix-agent
+        parser: first_line
+      - label: Configure Zabbix server (172.17.1.155)
+        command: >
+          sed -i 's/^Server=.*/Server=172.17.1.155/' /etc/zabbix/zabbix_agentd.conf &&
+          sed -i 's/^ServerActive=.*/ServerActive=172.17.1.155/' /etc/zabbix/zabbix_agentd.conf
+        parser: first_line
+      - label: Enable and start service
+        command: systemctl enable zabbix-agent && systemctl restart zabbix-agent
+        parser: first_line
+      - label: Verify service is active
+        command: systemctl is-active zabbix-agent
+        parser: first_line

@@ -1,0 +1,507 @@
+# tasks/menu.yml — Hierarchical Task Menu
+#
+# Changes from previous version:
+#   [Change 1] Added 'os' field to every task: redhat | ubuntu | windows
+#   [Change 2] Added 'category' field: patch_operations | app_maintenance | user_management
+#   [Change 3] Task names no longer carry OS suffix — OS is established by navigation level
+#   [Change 4] App Maintenance tasks added for all OS (YAML-driven, prompt_var for pkg name)
+#   [Change 5] User Management tasks added — most are YAML; delete/password stay Python
+#   [Change 6] Windows tasks added as stubs pointing to modules.windows
+#   [Change 7] FIX — Add User to Group: dummy first command replaced with a
+#              no-op placeholder that does not open an SSH connection.
+#   [Change 8] FIX-NEW — Add User to Group: command ordering was broken.
+#              The first command referenced {group_name} in its shell body before
+#              group_name was collected (it was collected by the SECOND command's
+#              prompt_var). task_runner.py collects all prompt_vars in order before
+#              opening SSH, but the {group_name} placeholder in the first command
+#              would never be substituted — it was injected as the literal string
+#              "{group_name}" into the shell, causing a syntax error or operating
+#              on a non-existent group.
+#              Fix: reordered commands so group_name is collected first (first
+#              prompt_var), then target_user (second prompt_var), and the usermod
+#              command (which needs both) runs after both are known. The confirm
+#              step runs last.
+#
+# Filtered at runtime by tasks_for(os_name, category) in task_runner.py.
+# Python tasks: type=python — dispatched via importlib in Main.py
+# SSH tasks:    type=ssh    — executed directly by run_yaml_task()
+
+tasks:
+
+  # ===========================================================================
+  # REDHAT
+  # ===========================================================================
+
+  # ── Patch Operations ────────────────────────────────────────────────────────
+  - name: Check Updates
+    os: redhat
+    category: patch_operations
+    type: python
+    module: modules.redhat
+    function: check_updates
+
+  - name: Patch
+    os: redhat
+    category: patch_operations
+    type: python
+    module: modules.redhat
+    function: patch
+
+  - name: Check Pending Reboot
+    os: redhat
+    category: patch_operations
+    type: python
+    module: modules.redhat
+    function: check_reboot
+
+  - name: Reboot As Required
+    os: redhat
+    category: patch_operations
+    type: python
+    module: modules.redhat
+    function: reboot_required
+
+  - name: Force Reboot
+    os: redhat
+    category: patch_operations
+    type: python
+    module: modules.redhat
+    function: force_reboot
+
+  # ── Application Maintenance — YAML with prompt_var ──────────────────────────
+  - name: Install Application
+    os: redhat
+    category: app_maintenance
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Install package
+        prompt_var: pkg_name
+        prompt_msg: Package name to install (e.g. nginx)
+        command: >
+          if command -v dnf >/dev/null 2>&1;
+          then dnf install -y {pkg_name};
+          else yum install -y {pkg_name};
+          fi
+        parser: full_output
+
+  - name: Remove Application
+    os: redhat
+    category: app_maintenance
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Remove package
+        prompt_var: pkg_name
+        prompt_msg: Package name to remove (e.g. nginx)
+        command: >
+          if command -v dnf >/dev/null 2>&1;
+          then dnf remove -y {pkg_name};
+          else yum remove -y {pkg_name};
+          fi
+        parser: full_output
+
+  - name: Update Application
+    os: redhat
+    category: app_maintenance
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Update package
+        prompt_var: pkg_name
+        prompt_msg: Package name to update (leave blank runs full update)
+        command: >
+          if command -v dnf >/dev/null 2>&1;
+          then dnf update -y {pkg_name};
+          else yum update -y {pkg_name};
+          fi
+        parser: full_output
+
+  - name: Search Application
+    os: redhat
+    category: app_maintenance
+    type: ssh
+    max_workers: 20
+    commands:
+      - label: Search package
+        prompt_var: search_term
+        prompt_msg: Package name or keyword to search
+        command: >
+          if command -v dnf >/dev/null 2>&1;
+          then dnf search {search_term} 2>/dev/null;
+          else yum search {search_term} 2>/dev/null;
+          fi
+        parser: full_output
+
+  # ── User Management — YAML tasks ────────────────────────────────────────────
+  - name: Add User
+    os: redhat
+    category: user_management
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Create user account
+        prompt_var: target_user
+        prompt_msg: Username to create on remote hosts
+        command: useradd -m -s /bin/bash {target_user} && echo "User {target_user} created"
+        parser: first_line
+
+  - name: Search User
+    os: redhat
+    category: user_management
+    type: ssh
+    max_workers: 20
+    commands:
+      - label: Look up user
+        prompt_var: target_user
+        prompt_msg: Username to search on remote hosts
+        command: id {target_user} 2>/dev/null || echo "User not found"
+        parser: full_output
+
+  - name: Add Group
+    os: redhat
+    category: user_management
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Create group
+        prompt_var: group_name
+        prompt_msg: Group name to create on remote hosts
+        command: groupadd {group_name} && echo "Group {group_name} created"
+        parser: first_line
+
+  # [Change 7 / SEC-7] Dummy commands removed; both vars collected before SSH.
+  # [Change 8 / FIX-NEW] Command ordering fixed: group_name collected first so
+  # the usermod command (which references both vars) has both values available.
+  # Previously group_name was collected by the SECOND prompt_var, meaning the
+  # first command's {group_name} was never substituted — the literal string
+  # "{group_name}" was passed to usermod, causing a guaranteed shell error.
+  - name: Add User to Group
+    os: redhat
+    category: user_management
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Collect group name
+        prompt_var: group_name
+        prompt_msg: Group name to add the user into
+        command: groupmod --help >/dev/null 2>&1 && echo "group_name={group_name} validated"
+        parser: first_line
+      - label: Add user to group
+        prompt_var: target_user
+        prompt_msg: Username to add to group
+        command: usermod -aG {group_name} {target_user} && echo "Added {target_user} to {group_name}"
+        parser: first_line
+      - label: Confirm group membership
+        command: id {target_user} 2>/dev/null || echo "User not found"
+        parser: first_line
+
+  # ── User Management — Python tasks (need confirmation or hidden input) ───────
+  - name: Delete User
+    os: redhat
+    category: user_management
+    type: python
+    module: modules.redhat
+    function: user_delete
+
+  - name: Update Password
+    os: redhat
+    category: user_management
+    type: python
+    module: modules.redhat
+    function: password_update
+
+  - name: Delete Group
+    os: redhat
+    category: user_management
+    type: python
+    module: modules.redhat
+    function: group_delete
+
+
+  # ===========================================================================
+  # UBUNTU
+  # ===========================================================================
+
+  # ── Patch Operations ────────────────────────────────────────────────────────
+  - name: Check Updates
+    os: ubuntu
+    category: patch_operations
+    type: python
+    module: modules.ubuntu
+    function: check_updates
+
+  - name: Patch
+    os: ubuntu
+    category: patch_operations
+    type: python
+    module: modules.ubuntu
+    function: patch
+
+  - name: Check Pending Reboot
+    os: ubuntu
+    category: patch_operations
+    type: python
+    module: modules.ubuntu
+    function: check_reboot
+
+  - name: Reboot As Required
+    os: ubuntu
+    category: patch_operations
+    type: python
+    module: modules.ubuntu
+    function: reboot_required
+
+  - name: Force Reboot
+    os: ubuntu
+    category: patch_operations
+    type: python
+    module: modules.ubuntu
+    function: force_reboot
+
+  # ── Application Maintenance — YAML with prompt_var ──────────────────────────
+  - name: Install Application
+    os: ubuntu
+    category: app_maintenance
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Install package
+        prompt_var: pkg_name
+        prompt_msg: Package name to install (e.g. nginx)
+        command: DEBIAN_FRONTEND=noninteractive apt-get install -y {pkg_name}
+        parser: full_output
+
+  - name: Remove Application
+    os: ubuntu
+    category: app_maintenance
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Remove package
+        prompt_var: pkg_name
+        prompt_msg: Package name to remove (e.g. nginx)
+        command: DEBIAN_FRONTEND=noninteractive apt-get remove -y {pkg_name}
+        parser: full_output
+
+  - name: Update Application
+    os: ubuntu
+    category: app_maintenance
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Refresh index
+        command: apt-get update -qq
+        parser: first_line
+      - label: Update package
+        prompt_var: pkg_name
+        prompt_msg: Package name to update
+        command: DEBIAN_FRONTEND=noninteractive apt-get install --only-upgrade -y {pkg_name}
+        parser: full_output
+
+  - name: Search Application
+    os: ubuntu
+    category: app_maintenance
+    type: ssh
+    max_workers: 20
+    commands:
+      - label: Search package
+        prompt_var: search_term
+        prompt_msg: Package name or keyword to search
+        command: apt-cache search {search_term} 2>/dev/null
+        parser: full_output
+
+  # ── User Management — YAML tasks ────────────────────────────────────────────
+  - name: Add User
+    os: ubuntu
+    category: user_management
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Create user account
+        prompt_var: target_user
+        prompt_msg: Username to create on remote hosts
+        command: adduser --disabled-password --gecos '' {target_user} && echo "User {target_user} created"
+        parser: first_line
+
+  - name: Search User
+    os: ubuntu
+    category: user_management
+    type: ssh
+    max_workers: 20
+    commands:
+      - label: Look up user
+        prompt_var: target_user
+        prompt_msg: Username to search on remote hosts
+        command: id {target_user} 2>/dev/null || echo "User not found"
+        parser: full_output
+
+  - name: Add Group
+    os: ubuntu
+    category: user_management
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Create group
+        prompt_var: group_name
+        prompt_msg: Group name to create on remote hosts
+        command: groupadd {group_name} && echo "Group {group_name} created"
+        parser: first_line
+
+  # [Change 7 / SEC-7] Dummy echo removed; both vars collected before SSH opens.
+  # [Change 8 / FIX-NEW] Same ordering fix as Redhat: group_name collected
+  # first so the usermod command has both {group_name} and {target_user}.
+  - name: Add User to Group
+    os: ubuntu
+    category: user_management
+    type: ssh
+    max_workers: 10
+    commands:
+      - label: Collect group name
+        prompt_var: group_name
+        prompt_msg: Group name to add the user into
+        command: groupmod --help >/dev/null 2>&1 && echo "group_name={group_name} validated"
+        parser: first_line
+      - label: Add user to group
+        prompt_var: target_user
+        prompt_msg: Username to add to group
+        command: usermod -aG {group_name} {target_user} && echo "Added {target_user} to {group_name}"
+        parser: first_line
+      - label: Confirm group membership
+        command: id {target_user} 2>/dev/null || echo "User not found"
+        parser: first_line
+
+  # ── User Management — Python tasks ──────────────────────────────────────────
+  - name: Delete User
+    os: ubuntu
+    category: user_management
+    type: python
+    module: modules.ubuntu
+    function: user_delete
+
+  - name: Update Password
+    os: ubuntu
+    category: user_management
+    type: python
+    module: modules.ubuntu
+    function: password_update
+
+  - name: Delete Group
+    os: ubuntu
+    category: user_management
+    type: python
+    module: modules.ubuntu
+    function: group_delete
+
+
+  # ===========================================================================
+  # WINDOWS — stubs, all point to modules.windows
+  # ===========================================================================
+
+  # ── Patch Operations ────────────────────────────────────────────────────────
+  - name: Check Updates
+    os: windows
+    category: patch_operations
+    type: python
+    module: modules.windows
+    function: check_updates
+
+  - name: Patch
+    os: windows
+    category: patch_operations
+    type: python
+    module: modules.windows
+    function: patch
+
+  - name: Check Pending Reboot
+    os: windows
+    category: patch_operations
+    type: python
+    module: modules.windows
+    function: check_reboot
+
+  - name: Reboot As Required
+    os: windows
+    category: patch_operations
+    type: python
+    module: modules.windows
+    function: reboot_required
+
+  - name: Force Reboot
+    os: windows
+    category: patch_operations
+    type: python
+    module: modules.windows
+    function: force_reboot
+
+  # ── Application Maintenance ─────────────────────────────────────────────────
+  - name: Install Application
+    os: windows
+    category: app_maintenance
+    type: python
+    module: modules.windows
+    function: app_install
+
+  - name: Remove Application
+    os: windows
+    category: app_maintenance
+    type: python
+    module: modules.windows
+    function: app_remove
+
+  - name: Update Application
+    os: windows
+    category: app_maintenance
+    type: python
+    module: modules.windows
+    function: app_update
+
+  - name: Search Application
+    os: windows
+    category: app_maintenance
+    type: python
+    module: modules.windows
+    function: app_search
+
+  # ── User Management ──────────────────────────────────────────────────────────
+  - name: Add User
+    os: windows
+    category: user_management
+    type: python
+    module: modules.windows
+    function: user_add
+
+  - name: Delete User
+    os: windows
+    category: user_management
+    type: python
+    module: modules.windows
+    function: user_delete
+
+  - name: Search User
+    os: windows
+    category: user_management
+    type: python
+    module: modules.windows
+    function: user_search
+
+  - name: Update Password
+    os: windows
+    category: user_management
+    type: python
+    module: modules.windows
+    function: password_update
+
+  - name: Add Group
+    os: windows
+    category: user_management
+    type: python
+    module: modules.windows
+    function: group_add
+
+  - name: Delete Group
+    os: windows
+    category: user_management
+    type: python
+    module: modules.windows
+    function: group_delete

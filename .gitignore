@@ -1,0 +1,11 @@
+__pycache__/
+logs/
+Review/
+patcher_vault.bin
+patcher_security_presentation v2.html
+*.bin
+*.pyc
+Playbook/
+venv/
+.env
+.DS_Store
