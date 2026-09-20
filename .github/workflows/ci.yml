@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8 bandit pip-audit
+
+      - name: Lint (flake8)
+        run: flake8 . --max-line-length=120 --exclude=venv
+
+      - name: SAST (bandit)
+        run: bandit -r . -x ./venv -ll -f sarif -o bandit-results.sarif
+        continue-on-error: true
+
+      - name: Upload Bandit results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+
+      - name: Dependency scan (pip-audit)
+        run: pip-audit -r requirements.txt
+
+  build-and-scan-image:
+    needs: lint-and-scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t automation-playbook:ci .
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: automation-playbook:ci
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "1"
+
+      - name: Upload Trivy results
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+
+  push:
+    needs: build-and-scan-image
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: chheouche/automation-playbook:latest
