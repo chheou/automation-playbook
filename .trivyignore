@@ -1,0 +1,17 @@
+# util-linux: mount/cgroup/symlink issues — no Debian fix published yet
+CVE-2026-76642
+CVE-2026-78408
+CVE-2026-78409
+CVE-2026-78410
+
+# libacl: symlink traversal privilege escalation — no fix yet
+CVE-2026-54369
+
+# ncurses: buffer overflow — no fix yet
+CVE-2025-69720
+
+# systemd-homed: local privilege escalation — no fix yet
+CVE-2026-16742
+
+# perl-Archive-Tar: DoS via crafted tar header — fix deferred by Debian
+CVE-2026-9538
