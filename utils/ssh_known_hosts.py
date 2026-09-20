@@ -157,11 +157,11 @@ def _verify_hmac(content: bytes, existing_entries: bool = False) -> bool:
 def _tamper_abort(reason: str) -> None:
     """Print a loud tamper warning and exit immediately."""
     console.print(
-        f"\n[bold red on white]"
-        f"  ╔══════════════════════════════════════════════════════════════╗\n"
-        f"  ║  ⚠   SECURITY ALERT — HOST KEY STORE TAMPERED — ABORT  ⚠   ║\n"
-        f"  ╚══════════════════════════════════════════════════════════════╝"
-        f"[/bold red on white]"
+        "\n[bold red on white]"
+        "  ╔══════════════════════════════════════════════════════════════╗\n"
+        "  ║  ⚠   SECURITY ALERT — HOST KEY STORE TAMPERED — ABORT  ⚠   ║\n"
+        "  ╚══════════════════════════════════════════════════════════════╝"
+        "[/bold red on white]"
     )
     console.print(f"[bold red]\n  {reason}[/bold red]\n")
     sys.exit(1)
@@ -313,26 +313,27 @@ def verify_or_learn(host: str, key) -> bool:
 
     # Key mismatch — show alert outside lock (no shared state mutation needed)
     console.print(
-        f"\n[bold red on white]"
-        f"  ╔══════════════════════════════════════════════════════════╗\n"
-        f"  ║  ⚠   WARNING — SSH HOST KEY MISMATCH — BLOCKED  ⚠      ║\n"
-        f"  ╚══════════════════════════════════════════════════════════╝"
-        f"[/bold red on white]"
+        "\n[bold red on white]"
+        "  ╔══════════════════════════════════════════════════════════╗\n"
+        "  ║  ⚠   WARNING — SSH HOST KEY MISMATCH — BLOCKED  ⚠      ║\n"
+        "  ╚══════════════════════════════════════════════════════════╝"
+        "[/bold red on white]"
     )
     console.print(
-        f"[bold red]  Host           : {host_display}[/bold red]\n"
-        f"[red]  Stored key     : {_store[host_id][:32]}…\n"
-        f"  Presented key  : {fingerprint[:32]}…\n\n"
-        f"  The SSH host key for this server has changed since the last\n"
-        f"  successful connection. This may indicate:\n"
-        f"    • A man-in-the-middle (MITM) attack\n"
-        f"    • The server was rebuilt or re-imaged\n"
-        f"    • SSH host keys were intentionally rotated\n\n"
-        f"  Connection BLOCKED. Resolve manually:\n"
-        f"    1. Verify the server was legitimately rebuilt/re-keyed.\n"
-        f"    2. If trusted, delete BOTH logs/.host_keys.json AND\n"
-        f"       logs/.host_keys.json.sig, then reconnect to re-learn.\n"
-        f"    3. If unexpected, investigate for MITM.[/red]\n"
+        "[bold red]  Host           : {0}[/bold red]\n"
+        "[red]  Stored key     : {1}…\n"
+        "  Presented key  : {2}…\n\n"
+        "  The SSH host key for this server has changed since the last\n"
+        "  successful connection. This may indicate:\n"
+        "    • A man-in-the-middle (MITM) attack\n"
+        "    • The server was rebuilt or re-imaged\n"
+        "    • SSH host keys were intentionally rotated\n\n"
+        "  Connection BLOCKED. Resolve manually:\n"
+        "    1. Verify the server was legitimately rebuilt/re-keyed.\n"
+        "    2. If trusted, delete BOTH logs/.host_keys.json AND\n"
+        "       logs/.host_keys.json.sig, then reconnect to re-learn.\n"
+        "    3. If unexpected, investigate for MITM.[/red]\n"
+        .format(host_display, _store[host_id][:32], fingerprint[:32])
     )
     return False
 
@@ -349,7 +350,7 @@ def forget_host(host: str) -> bool:
         if host_id in _store:
             del _store[host_id]
             _save()
-            console.print(f"[yellow]Host key entry removed.[/yellow]")
+            console.print("[yellow]Host key entry removed.[/yellow]")
             return True
-    console.print(f"[dim]No stored key found for requested host.[/dim]")
+    console.print("[dim]No stored key found for requested host.[/dim]")
     return False

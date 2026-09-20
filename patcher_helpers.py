@@ -101,10 +101,8 @@ def get_ssh_credentials() -> tuple[str, str]:
     the main tool flow.
     """
     master_pass = getpass.getpass("Enter master passphrase: ")
-    vault, hmac_key = load_vault(master_pass)
+    vault, _ = load_vault(master_pass)
     master_pass = None
-    hmac_key = b"\x00" * 32
-    hmac_key = None   # not needed here
     return vault["ssh_username"], vault["ssh_password"]
 
 
@@ -122,10 +120,8 @@ def verify_login(username: str, password: str) -> bool:
     timing-based detection of the over-length rejection path.
     """
     master_pass = getpass.getpass("Enter master passphrase: ")
-    vault, hmac_key = load_vault(master_pass)
+    vault, _ = load_vault(master_pass)
     master_pass = None
-    hmac_key = b"\x00" * 32
-    hmac_key = None   # not needed here
 
     users = vault.get("users", {})
 

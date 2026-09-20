@@ -229,8 +229,8 @@ def patch(username: str) -> None:
                     raw = client.run("yum check-update", log_func=log_fn, silent=True)
 
                     pkg_lines = [
-                        l for l in raw.splitlines()
-                        if l.strip() and "." in l.split()[0]
+                        line for line in raw.splitlines()
+                        if line.strip() and "." in line.split()[0]
                     ]
                     pkg_count = len(pkg_lines)
                     log_fn(f"[{host}] {pkg_count} package(s) available")
@@ -299,8 +299,8 @@ def check_update(username: str) -> None:
 
             raw = client.run("yum check-update", require_root=False)
             count = len([
-                l for l in raw.splitlines()
-                if l.strip() and "." in l.split()[0]
+                line for line in raw.splitlines()
+                if line.strip() and "." in line.split()[0]
             ])
             status = (
                 f"[bold yellow]{count} package{'s' if count != 1 else ''}[/bold yellow]"
