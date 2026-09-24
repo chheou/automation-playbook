@@ -1,0 +1,9 @@
+2026-09-20T23:59:21 UTC | INFO | === Patcher secrets setup started ===
+2026-09-20T23:59:26 UTC | INFO | Master passphrase accepted.
+2026-09-20T23:59:33 UTC | INFO | Login password hashed for: admin
+2026-09-20T23:59:42 UTC | INFO | SSH username accepted: test.admin
+2026-09-20T23:59:44 UTC | INFO | SSH password accepted.
+2026-09-20T23:59:44 UTC | INFO | patcher_vault.bin written successfully.
+2026-09-20T23:59:44 UTC | INFO | patcher_helpers.py written successfully.
+2026-09-20T23:59:44 UTC | INFO | Users configured: admin
+2026-09-20T23:59:44 UTC | INFO | === Setup completed successfully ===
