@@ -22,8 +22,7 @@
 #           repeated sign-out / sign-in cycles. They are wiped only in
 #           _wipe_vault_ssh_creds(), called on Ctrl+C and normal process exit.
 #
-#   All previous fixes (SEC-1 through SEC-11, FIX-A through FIX-C) retained.
-
+#            All previous fixes (SEC-1 through SEC-11, FIX-A through FIX-C) retained.
 import importlib
 import json
 import os
