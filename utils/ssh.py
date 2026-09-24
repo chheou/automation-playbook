@@ -174,7 +174,7 @@ class SSHClient:
 
         try:
             self.ssh.get_host_keys().add(self.host, remote_key.get_name(), remote_key)
-            self.ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+            self.ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
             _pw = pw
             try:
                 self.ssh.connect(
@@ -222,7 +222,7 @@ class SSHClient:
         if not self.ssh:
             return False
         try:
-            _, stdout, _ = self.ssh.exec_command("id -u", timeout=10)
+            _, stdout, _ = self.ssh.exec_command("id -u", timeout=10)  # nosec B601 - hardcoded literal, no user input
             return stdout.read().decode().strip() == "0"
         except Exception:
             return False
@@ -268,7 +268,13 @@ class SSHClient:
         else:
             remote_cmd = command
 
-        _, stdout, stderr_channel = self.ssh.exec_command(remote_cmd, timeout=timeout)
+        # TRUST BOUNDARY: `command` must originate from trusted, admin-authored
+        # call sites only (never from unsanitized external/user input). When
+        # require_root=True it is shell-quoted above; when False it is passed
+        # verbatim so pipes/redirects still work, which is intentional for an
+        # admin command runner. Do not relax this assumption without adding
+        # input validation at the call site.
+        _, stdout, stderr_channel = self.ssh.exec_command(remote_cmd, timeout=timeout)  # nosec B601
 
         channel = stdout.channel
         channel.settimeout(timeout)
@@ -396,9 +402,7 @@ class SSHClient:
         if not self.ssh:
             return False
         try:
-            stdin_ch, stdout_ch, stderr_ch = self.ssh.exec_command(
-                "sudo chpasswd", timeout=30
-            )
+            stdin_ch, stdout_ch, stderr_ch = self.ssh.exec_command("sudo chpasswd", timeout=30)  # nosec B601 - hardcoded literal, no user input
             payload = f"{username}:{new_password}\n"
             stdin_ch.write(payload)
             stdin_ch.channel.shutdown_write()
