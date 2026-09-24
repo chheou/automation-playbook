@@ -402,7 +402,9 @@ class SSHClient:
         if not self.ssh:
             return False
         try:
-            stdin_ch, stdout_ch, stderr_ch = self.ssh.exec_command("sudo chpasswd", timeout=30)  # nosec B601 - hardcoded literal, no user input
+            stdin_ch, stdout_ch, stderr_ch = self.ssh.exec_command(
+                "sudo chpasswd", timeout=30  # nosec B601 - hardcoded literal, no user input
+            )
             payload = f"{username}:{new_password}\n"
             stdin_ch.write(payload)
             stdin_ch.channel.shutdown_write()
