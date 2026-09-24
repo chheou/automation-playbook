@@ -15,3 +15,13 @@ CVE-2026-16742
 
 # perl-Archive-Tar: DoS via crafted tar header — fix deferred by Debian
 CVE-2026-9538
+
+# msgpack 1.1.2 — fixed version (1.2.1) exists upstream, but this is pip's
+# own internal vendored copy (pip/_vendor/msgpack), not a top-level dependency
+# we control. Fix requires the pip project itself to bump its bundled version.
+GHSA-6v7p-g79w-8964
+
+# setuptools 70.3.0 — same situation as msgpack: fixed version (78.1.1) exists,
+# but this is pip's internally bundled copy, not our project's setuptools pin
+# (already upgraded separately to 84.0.0, which shows clean).
+CVE-2025-47273
